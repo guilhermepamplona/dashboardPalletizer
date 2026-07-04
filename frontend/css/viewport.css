@@ -1,0 +1,60 @@
+/* ---------- 3D viewport ---------- */
+  #viewport-wrap{
+      position:relative;
+  background:
+    radial-gradient(circle at 50% 35%, #2b3038 0%, #1d2127 75%);
+  border-right:1px solid var(--line);
+  }
+  #viewport{ width:100%; height:100%; display:block; }
+
+  .viewport-hud{
+    position:absolute;
+    top:16px; left:16px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-dim);
+    pointer-events:none;
+    line-height:1.6;
+  }
+  .viewport-hud .label{ color:var(--text-dim); }
+  .viewport-hud .val{ color:var(--text); }
+
+  .state-badge{
+    position:absolute;
+    top:16px; right:16px;
+    display:flex; gap:8px;
+    flex-direction:column;
+    align-items:flex-end;
+  }
+  .pill{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.03em;
+    padding:5px 10px;
+    border-radius:2px;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    color:var(--text-dim);
+    text-transform:uppercase;
+  }
+  .pill.running{ color:var(--ok); border-color:#1d4a34; }
+  .pill.stopped{ color:var(--text-dim); }
+  .pill.safety{  color:var(--danger); border-color:#5a1f1f; background:#241313; }
+
+  .joints-readout{
+    position:absolute;
+    bottom:16px; left:16px;
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:10px;
+  }
+  .joint-cell{
+    font-family:var(--mono);
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:6px 10px;
+    min-width:64px;
+  }
+  .joint-cell .jname{ font-size:10px; color:var(--text-dim); }
+  .joint-cell .jval{ font-size:13px; color:var(--kuka-orange); }

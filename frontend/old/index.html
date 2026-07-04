@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Célula de Paletização · KR180 R3200 PA</title>
+<script type="text/javascript" src="https://me.kes.v2.scr.kaspersky-labs.com/7EA5E9BB-55E1-4C31-9C21-4943DDFED2E4/main.js?attr=GkV4M0wL40lCWP5H4LipPifjZLD3poHswrBpX3o4Vop88GnBzIZwLgn4Vw4s4IglGYluf-A6ZQSGd2v15qpntgkzgvZXMDRXKEfWiNb9FKYQwEIYevct7FurBNobrWLdCPxJon-ctyn38--_CuK4VE7DCO1u9RrbaemXl0fJP6vJp4ODRnI1itux-eGVGzW6vVRfpRGY_ErYiifwFlJHbY2qQw-VG8gq8EZtS2BzkTCnZNca3yn-TVep84pDcHryfBLgzPWjqw7-JK4CTa34NvtooPYCM3rxOEAPjcZl2VF6ydrot3-OI-fP-CLok1TF" charset="UTF-8"></script><style>
+  :root{
+    --bg:           #15171a;
+    --bg-panel:     #1c1f23;
+    --bg-panel-2:   #20242a;
+    --line:         #2c3036;
+    --text:         #e7e9ec;
+    --text-dim:     #8a909a;
+    --kuka-orange:  #ff6600;
+    --kuka-orange-dim: #5c2c0a;
+    --ok:           #36c87a;
+    --warn:         #f5b942;
+    --danger:       #ef4444;
+    --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{
+    height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    overflow:hidden;
+  }
+
+  #app{
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    grid-template-rows: 56px 1fr;
+    height:100vh;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    grid-column: 1 / 3;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 20px;
+    background:var(--bg-panel);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand .mark{
+    width:10px; height:10px;
+    background:var(--kuka-orange);
+    transform:rotate(45deg);
+  }
+  .brand h1{
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+  }
+  .brand .sub{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-dim);
+    margin-left:8px;
+    padding-left:8px;
+    border-left:1px solid var(--line);
+  }
+  .conn{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-dim);
+  }
+  .dot{
+    width:8px; height:8px;
+    border-radius:50%;
+    background:var(--danger);
+    box-shadow:0 0 8px var(--danger);
+    transition:background .2s, box-shadow .2s;
+  }
+  .dot.online{
+    background:var(--ok);
+    box-shadow:0 0 8px var(--ok);
+  }
+
+  /* ---------- 3D viewport ---------- */
+  #viewport-wrap{
+    position:relative;
+    background:
+      radial-gradient(circle at 50% 35%, #1a1d21 0%, #121417 70%);
+    border-right:1px solid var(--line);
+  }
+  #viewport{ width:100%; height:100%; display:block; }
+
+  .viewport-hud{
+    position:absolute;
+    top:16px; left:16px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-dim);
+    pointer-events:none;
+    line-height:1.6;
+  }
+  .viewport-hud .label{ color:var(--text-dim); }
+  .viewport-hud .val{ color:var(--text); }
+
+  .state-badge{
+    position:absolute;
+    top:16px; right:16px;
+    display:flex; gap:8px;
+    flex-direction:column;
+    align-items:flex-end;
+  }
+  .pill{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.03em;
+    padding:5px 10px;
+    border-radius:2px;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    color:var(--text-dim);
+    text-transform:uppercase;
+  }
+  .pill.running{ color:var(--ok); border-color:#1d4a34; }
+  .pill.stopped{ color:var(--text-dim); }
+  .pill.safety{  color:var(--danger); border-color:#5a1f1f; background:#241313; }
+
+  .joints-readout{
+    position:absolute;
+    bottom:16px; left:16px;
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:10px;
+  }
+  .joint-cell{
+    font-family:var(--mono);
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:6px 10px;
+    min-width:64px;
+  }
+  .joint-cell .jname{ font-size:10px; color:var(--text-dim); }
+  .joint-cell .jval{ font-size:13px; color:var(--kuka-orange); }
+
+  /* ---------- Sidebar ---------- */
+  #sidebar{
+    background:var(--bg-panel);
+    overflow-y:auto;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .card{
+    background:var(--bg-panel-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:14px;
+  }
+  .card h2{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--text-dim);
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  /* contadores */
+  .counters{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .counter-box{
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:10px;
+  }
+  .counter-box .n{
+    font-family:var(--mono);
+    font-size:26px;
+    font-weight:600;
+    color:var(--text);
+  }
+  .counter-box .l{
+    font-size:10px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-top:2px;
+  }
+  .cycle-time{
+    margin-top:10px;
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+  }
+  .cycle-time span:last-child{ color:var(--text); }
+
+  /* estado do programa */
+  .state-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:7px 0;
+    border-bottom:1px solid var(--line);
+    font-size:12px;
+  }
+  .state-row:last-child{ border-bottom:none; }
+  .state-row .k{ color:var(--text-dim); }
+  .state-row .v{ font-family:var(--mono); }
+  .flag{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:var(--mono);
+  }
+  .flag .led{
+    width:7px; height:7px;
+    border-radius:50%;
+    background:#3a3f46;
+  }
+  .flag.on .led{ background:var(--ok); box-shadow:0 0 6px var(--ok); }
+  .flag.off .led{ background:#3a3f46; }
+  .flag.alert .led{ background:var(--danger); box-shadow:0 0 6px var(--danger); }
+
+  /* alarmes */
+  .alarm-banner{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:2px;
+    font-family:var(--mono);
+    font-size:12px;
+    margin-bottom:10px;
+  }
+  .alarm-banner.none{
+    background:var(--bg);
+    border:1px solid var(--line);
+    color:var(--text-dim);
+  }
+  .alarm-banner.warning{
+    background:#2a2110;
+    border:1px solid #5c4413;
+    color:var(--warn);
+  }
+  .alarm-banner.alarm{
+    background:#2a1414;
+    border:1px solid #5a1f1f;
+    color:var(--danger);
+  }
+  .alarm-banner .code{
+    font-weight:700;
+  }
+
+  footer.note{
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--text-dim);
+    line-height:1.6;
+    padding-top:4px;
+  }
+  footer.note b{ color:var(--text-dim); }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <div class="brand">
+      <div class="mark"></div>
+      <h1>Célula de Paletização</h1>
+      <span class="sub">KR180 R3200 PA</span>
+    </div>
+    <div class="conn">
+      <div class="dot" id="connDot"></div>
+      <span id="connText">desconectado do CLP</span>
+    </div>
+  </header>
+
+  <div id="viewport-wrap">
+    <canvas id="viewport"></canvas>
+
+    <div class="viewport-hud">
+      <div><span class="label">CÉLULA</span> <span class="val">PALETIZAÇÃO · LINHA 01</span></div>
+      <div><span class="label">ROBÔ</span> <span class="val">KUKA KR180 R3200 PA</span></div>
+      <div><span class="label">MODELO</span> <span class="val" id="modelStatus">carregando GLB…</span></div>
+      <div><span class="label">FONTE</span> <span class="val">CLP · DB genérica</span></div>
+    </div>
+
+    <div class="state-badge">
+      <div class="pill" id="programStatePill">—</div>
+      <div class="pill stopped" id="runningPill">parado</div>
+      <div class="pill" id="safetyPill" style="display:none;">parada de segurança</div>
+    </div>
+
+    <div class="joints-readout" id="jointsReadout"></div>
+  </div>
+
+  <div id="sidebar">
+
+    <div class="card">
+      <h2>Produção</h2>
+      <div class="counters">
+        <div class="counter-box">
+          <div class="n" id="palletCount">0</div>
+          <div class="l">Paletes</div>
+        </div>
+        <div class="counter-box">
+          <div class="n" id="cycleCount">0</div>
+          <div class="l">Ciclos</div>
+        </div>
+      </div>
+      <div class="cycle-time">
+        <span>Último ciclo</span>
+        <span id="cycleTime">0.0 s</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Estado do programa</h2>
+      <div class="state-row">
+        <span class="k">Modo</span>
+        <span class="v" id="modeVal">—</span>
+      </div>
+      <div class="state-row">
+        <span class="k">Programa</span>
+        <span class="v"><span class="flag off" id="flagRunning"><span class="led"></span>parado</span></span>
+      </div>
+      <div class="state-row">
+        <span class="k">Acionamentos (drives)</span>
+        <span class="v"><span class="flag off" id="flagDrives"><span class="led"></span>desligados</span></span>
+      </div>
+      <div class="state-row">
+        <span class="k">Posição HOME</span>
+        <span class="v"><span class="flag off" id="flagHome"><span class="led"></span>fora</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Alarmes</h2>
+      <div class="alarm-banner none" id="alarmBanner">
+        <span>Sem alarmes ativos</span>
+      </div>
+      <div class="state-row">
+        <span class="k">Código ativo</span>
+        <span class="v" id="alarmCode">—</span>
+      </div>
+    </div>
+
+    <footer class="note">
+      <b>DB genérica</b> · offsets definidos em <code>plc_client.py</code>.<br>
+      Ajuste <code>DB_NUMBER</code> / endereços assim que a DB final<br>
+      da célula for fechada no TIA Portal.
+    </footer>
+
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "/static/libs/three.module.js",
+    "three/addons/": "/static/libs/"
+  }
+}
+</script>
+<script type="module">
+/* =====================================================================
+   IMPORTS
+   ===================================================================== */
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/OrbitControls.js';
+// Para rodar offline na Unified, o ideal é copiar GLTFLoader.js para frontend/libs
+// e trocar a linha abaixo por: import { GLTFLoader } from 'three/addons/GLTFLoader.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/loaders/GLTFLoader.js';
+
+/* =====================================================================
+   CONFIG
+   ===================================================================== */
+const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws";
+
+const PROGRAM_STATE_LABELS = {
+  0: "Manual T1",
+  1: "Manual T2",
+  2: "Automático",
+  3: "Externo",
+};
+
+const JOINT_NAMES = ["A1","A2","A3","A4","A5","A6"];
+
+/* =====================================================================
+   THREE.JS SCENE
+   ===================================================================== */
+const canvas = document.getElementById("viewport");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+camera.position.set(4.2, 3.2, 4.6);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1.2, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 1.5;
+controls.maxDistance = 14;
+
+// luz
+scene.add(new THREE.HemisphereLight(0x445566, 0x10110f, 0.9));
+const key = new THREE.DirectionalLight(0xffffff, 1.1);
+key.position.set(5, 8, 4);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+scene.add(key);
+const fill = new THREE.DirectionalLight(0x6688ff, 0.25);
+fill.position.set(-4, 3, -3);
+scene.add(fill);
+
+// chão
+const floor = new THREE.Mesh(
+  new THREE.CircleGeometry(8, 64),
+  new THREE.MeshStandardMaterial({ color:0x1a1c1f, roughness:0.95, metalness:0.05 })
+);
+floor.rotation.x = -Math.PI/2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+const grid = new THREE.GridHelper(16, 32, 0x33373d, 0x24262b);
+grid.position.y = 0.001;
+scene.add(grid);
+
+/* ---------------------------------------------------------------------
+   ROBÔ — modelo CAD exportado do Blender em GLB
+   --------------------------------------------------------------------- */
+const MODEL_URL = "/static/models/KR180_Std.glb";
+
+const robot = {
+  root: null,
+  axis1: null,
+  axis2: null,
+  axis3: null,
+  axis5: null,
+  axis6: null,
+  tcp: null,
+  ready: false
+};
+
+/*
+  Ajuste fino dos eixos.
+  Se algum eixo girar invertido ou no eixo errado, altere aqui.
+  axis: "x", "y" ou "z"
+  sign: 1 ou -1
+  offset: correção em graus, caso o zero do CAD não bata com o zero do KUKA.
+*/
+const AXIS_CONFIG = {
+  a1: { object: "axis1", axis: "z", sign:  1, offset: 0 },
+  a2: { object: "axis2", axis: "y", sign:  1, offset: 0 },
+  a3: { object: "axis3", axis: "y", sign:  1, offset: 0 },
+  // A4 existe no KUKA, mas neste KR PA fica 0. Mantemos no payload/UI e ignoramos no modelo.
+  a5: { object: "axis5", axis: "y", sign:  1, offset: 0 },
+  a6: { object: "axis6", axis: "z", sign:  1, offset: 0 },
+};
+
+function getRequiredObject(root, name){
+  const obj = root.getObjectByName(name);
+  if (!obj) {
+    console.warn(`Objeto '${name}' não encontrado no GLB.`);
+  }
+  return obj;
+}
+
+function prepareMesh(obj){
+  obj.traverse((child) => {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+      if (child.material) {
+        child.material.roughness = child.material.roughness ?? 0.55;
+        child.material.metalness = child.material.metalness ?? 0.25;
+      }
+    }
+  });
+}
+
+function loadRobotModel(){
+  const loader = new GLTFLoader();
+
+  loader.load(
+    MODEL_URL,
+    (gltf) => {
+      const root = gltf.scene;
+      root.name = root.name || "KR180_R3200_PA";
+
+      prepareMesh(root);
+
+      // Ajuste geral de posição/escala do modelo na cena.
+      // Se o CAD veio em metros, deixe scale = 1.
+      // Se veio em milímetros, use 0.001.
+      root.scale.setScalar(1);
+      root.position.set(0, 0, 0);
+      root.rotation.set(0, 0, 0);
+
+      robot.root  = root;
+      robot.axis1 = getRequiredObject(root, "Axis1");
+      robot.axis2 = getRequiredObject(root, "Axis2");
+      robot.axis3 = getRequiredObject(root, "Axis3");
+      robot.axis5 = getRequiredObject(root, "Axis5");
+      robot.axis6 = getRequiredObject(root, "Axis6");
+      robot.tcp   = getRequiredObject(root, "TCP");
+
+      const missing = ["axis1","axis2","axis3","axis5","axis6"].filter(k => !robot[k]);
+      robot.ready = missing.length === 0;
+
+      if (el.modelStatus) {
+        el.modelStatus.textContent = robot.ready
+          ? "GLB carregado"
+          : "GLB carregado, eixos faltando: " + missing.join(", ");
+      }
+
+      scene.add(root);
+
+      // Centraliza a câmera no robô carregado
+      const box = new THREE.Box3().setFromObject(root);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      controls.target.copy(center);
+      controls.target.y += size.y * 0.15;
+      camera.position.set(center.x + size.length()*0.75, center.y + size.length()*0.45, center.z + size.length()*0.75);
+      controls.update();
+    },
+    undefined,
+    (err) => {
+      console.error("Erro ao carregar GLB:", err);
+      if (el.modelStatus) el.modelStatus.textContent = "erro ao carregar GLB";
+    }
+  );
+}
+
+loadRobotModel();
+
+function setAxisRotation(axisObject, axisName, angleDeg){
+  if (!axisObject) return;
+  axisObject.rotation[axisName] = THREE.MathUtils.degToRad(angleDeg);
+}
+
+function applyJointAngles(deg){
+  if (!robot.ready) return;
+
+  const values = {
+    a1: deg[0] ?? 0,
+    a2: deg[1] ?? 0,
+    a3: deg[2] ?? 0,
+    a5: deg[4] ?? 0,
+    a6: deg[5] ?? 0,
+  };
+
+  for (const [joint, cfg] of Object.entries(AXIS_CONFIG)) {
+    const obj = robot[cfg.object];
+    const angle = (values[joint] * cfg.sign) + cfg.offset;
+    setAxisRotation(obj, cfg.axis, angle);
+  }
+}
+
+function resize(){
+  const wrap = document.getElementById("viewport-wrap");
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener("resize", resize);
+resize();
+
+function animate(){
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+/* =====================================================================
+   UI BINDINGS
+   ===================================================================== */
+const jointsReadout = document.getElementById("jointsReadout");
+JOINT_NAMES.forEach((name) => {
+  const cell = document.createElement("div");
+  cell.className = "joint-cell";
+  cell.innerHTML = `<div class="jname">${name}</div><div class="jval" id="jval-${name}">0.0°</div>`;
+  jointsReadout.appendChild(cell);
+});
+
+const el = {
+  connDot: document.getElementById("connDot"),
+  connText: document.getElementById("connText"),
+  programStatePill: document.getElementById("programStatePill"),
+  runningPill: document.getElementById("runningPill"),
+  safetyPill: document.getElementById("safetyPill"),
+  palletCount: document.getElementById("palletCount"),
+  cycleCount: document.getElementById("cycleCount"),
+  cycleTime: document.getElementById("cycleTime"),
+  modeVal: document.getElementById("modeVal"),
+  flagRunning: document.getElementById("flagRunning"),
+  flagDrives: document.getElementById("flagDrives"),
+  flagHome: document.getElementById("flagHome"),
+  alarmBanner: document.getElementById("alarmBanner"),
+  alarmCode: document.getElementById("alarmCode"),
+  modelStatus: document.getElementById("modelStatus"),
+};
+
+function setFlag(elm, on, onText, offText){
+  elm.classList.toggle("on", on);
+  elm.classList.toggle("off", !on);
+  elm.innerHTML = `<span class="led"></span>${on ? onText : offText}`;
+}
+
+function applyState(state){
+  const joints = Array.isArray(state.joints) ? state.joints : [0,0,0,0,0,0];
+
+  // robô
+  //applyJointAngles(joints);
+  JOINT_NAMES.forEach((name, i) => {
+    document.getElementById(`jval-${name}`).textContent = (joints[i] ?? 0).toFixed(1) + "°";
+  });
+
+  // conexão
+  el.connDot.classList.toggle("online", (state.connected ?? false));
+  el.connText.textContent = (state.connected ?? false) ? "conectado ao CLP" : "desconectado do CLP";
+
+  // estado do programa
+  const stateLabel = PROGRAM_STATE_LABELS[(state.program_state ?? -1)] ?? "—";
+  el.programStatePill.textContent = stateLabel;
+  el.modeVal.textContent = stateLabel;
+
+  el.runningPill.textContent = (state.program_running ?? false) ? "em execução" : "parado";
+  el.runningPill.classList.toggle("running", (state.program_running ?? false));
+  el.runningPill.classList.toggle("stopped", !(state.program_running ?? false));
+
+  el.safetyPill.style.display = (state.in_safety_stop ?? false) ? "inline-block" : "none";
+  el.safetyPill.classList.toggle("safety", (state.in_safety_stop ?? false));
+
+  setFlag(el.flagRunning, (state.program_running ?? false), "em execução", "parado");
+  setFlag(el.flagDrives, (state.drives_on ?? false), "ligados", "desligados");
+  setFlag(el.flagHome, (state.in_home_position ?? false), "em home", "fora");
+
+  // produção
+  el.palletCount.textContent = (state.pallet_count ?? 0);
+  el.cycleCount.textContent = (state.cycle_count ?? 0);
+  el.cycleTime.textContent = ((state.cycle_time_s ?? 0).toFixed(2)) + " s";
+
+  // alarmes
+  if ((state.alarm_active ?? false)){
+    el.alarmBanner.className = "alarm-banner alarm";
+    el.alarmBanner.innerHTML = `<span>⚠ Alarme ativo</span>`;
+  } else if ((state.warning_active ?? false)){
+    el.alarmBanner.className = "alarm-banner warning";
+    el.alarmBanner.innerHTML = `<span>Aviso ativo</span>`;
+  } else {
+    el.alarmBanner.className = "alarm-banner none";
+    el.alarmBanner.innerHTML = `<span>Sem alarmes ativos</span>`;
+  }
+  el.alarmCode.textContent = (state.active_alarm_code ?? 0) ? ("#" + (state.active_alarm_code ?? 0)) : "—";
+}
+
+/* =====================================================================
+   WEBSOCKET
+   ===================================================================== */
+let ws;
+let reconnectTimer;
+
+function connectWS(){
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    clearTimeout(reconnectTimer);
+  };
+
+  ws.onmessage = (ev) => {
+    try {
+      const state = JSON.parse(ev.data);
+      applyState(state);
+    } catch (e) {
+      console.error("payload inválido", e);
+    }
+  };
+
+  ws.onclose = () => {
+    el.connDot.classList.remove("online");
+    el.connText.textContent = "reconectando…";
+    reconnectTimer = setTimeout(connectWS, 1500);
+  };
+
+  ws.onerror = () => ws.close();
+}
+connectWS();
+</script>
+</body>
+</html>

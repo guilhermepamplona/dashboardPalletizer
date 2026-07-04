@@ -1,0 +1,14 @@
+@media (max-width: 900px) {
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 1fr;
+  }
+
+  #sidebar {
+    display: none;
+  }
+
+  header {
+    grid-column: 1 / 2;
+  }
+}

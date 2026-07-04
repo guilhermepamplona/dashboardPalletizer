@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Célula de Paletização · KR180 R3200 PA</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">
+      <div class="mark"></div>
+      <h1>Célula de Paletização</h1>
+      <span class="sub">KR180 R3200 PA</span>
+    </div>
+    <div class="conn">
+      <div class="dot" id="connDot"></div>
+      <span id="connText">Desconectado do CLP</span>
+    </div>
+  </header>
+
+  <div id="viewport-wrap">
+    <canvas id="viewport"></canvas>
+
+    <div class="viewport-hud">
+      <div><span class="label">CÉLULA</span> <span class="val">PALETIZAÇÃO · LINHA INJETÁVEIS</span></div>
+      <div><span class="label">ROBÔ</span> <span class="val">KUKA KR180 R3200 PA</span></div>
+      <div><span class="label">MODELO</span> <span class="val" id="modelStatus">carregando GLB…</span></div>
+      <div><span class="label">FONTE</span> <span class="val">CLP · DB 601</span></div>
+    </div>
+
+    <div class="state-badge">
+      <div class="pill" id="programStatePill">—</div>
+      <div class="pill stopped" id="runningPill">Parado</div>
+      <div class="pill" id="safetyPill" style="display:none;">Parada de segurança</div>
+    </div>
+
+    <div class="joints-readout" id="jointsReadout"></div>
+  </div>
+
+  <div id="sidebar">
+
+    <div class="card">
+      <h2>Produção</h2>
+      <div class="counters">
+        <div class="counter-box">
+          <div class="n" id="palletCount">0</div>
+          <div class="l">Paletes</div>
+        </div>
+        <div class="counter-box">
+          <div class="n" id="cycleCount">0</div>
+          <div class="l">Ciclos</div>
+        </div>
+      </div>
+      <div class="cycle-time">
+        <span>Último ciclo</span>
+        <span id="cycleTime">0.0 s</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Estado do programa</h2>
+      <div class="state-row">
+        <span class="k">Modo</span>
+        <span class="v" id="modeVal">—</span>
+      </div>
+      <div class="state-row">
+        <span class="k">Programa</span>
+        <span class="v"><span class="flag off" id="flagRunning"><span class="led"></span>Parado</span></span>
+      </div>
+      <div class="state-row">
+        <span class="k">Acionamentos (drives)</span>
+        <span class="v"><span class="flag off" id="flagDrives"><span class="led"></span>Desligados</span></span>
+      </div>
+      <div class="state-row">
+        <span class="k">Posição HOME</span>
+        <span class="v"><span class="flag off" id="flagHome"><span class="led"></span>Fora</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Alarmes</h2>
+      <div class="alarm-banner none" id="alarmBanner">
+        <span>Sem alarmes ativos</span>
+      </div>
+      <div class="state-row">
+        <span class="k">Código ativo</span>
+        <span class="v" id="alarmCode">—</span>
+      </div>
+    </div>
+
+    <footer class="note">
+      <b>DB genérica</b> · offsets definidos em <code>plc_client.py</code>.<br>
+      Ajuste <code>DB_NUMBER</code> / endereços assim que a DB final<br>
+      da célula for fechada no TIA Portal.
+    </footer>
+
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "/static/libs/three.module.js",
+    "three/addons/": "/static/libs/"
+  }
+}
+</script>
+<script type="module" src="/static/js/app.js"></script>
+</body>
+</html>

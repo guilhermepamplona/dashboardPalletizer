@@ -1,0 +1,32 @@
+:root{
+    --bg:           #15171a;
+    --bg-panel:     #1c1f23;
+    --bg-panel-2:   #20242a;
+    --line:         #2c3036;
+    --text:         #e7e9ec;
+    --text-dim:     #8a909a;
+    --kuka-orange:  #ff6600;
+    --kuka-orange-dim: #5c2c0a;
+    --ok:           #36c87a;
+    --warn:         #f5b942;
+    --danger:       #ef4444;
+    --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{
+    height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    overflow:hidden;
+  }
+
+  #app{
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    grid-template-rows: 56px 1fr;
+    height:100vh;
+  }
