@@ -1,82 +1,83 @@
 """
 plc_client.py
 --------------
-Cliente S7 (ISO-TSAP) para leitura de uma DB GENERICA do CLP que alimenta
-o dashboard da celula de paletizacao (KR180 R2 PA).
+Cliente S7 (ISO-TSAP) para leitura da DB601_DashBoard do CLP que alimenta
+o dashboard da célula de paletização (KR180 R2 PA).
 
-IMPORTANTE: os valores de DB_NUMBER, IP, RACK, SLOT e os OFFSETS abaixo
-sao PLACEHOLDERS. Ajuste para a DB real assim que ela estiver definida
-no TIA Portal / Step7. Procure por "AJUSTAR" neste arquivo.
+Layout da DB601_DashBoard (TIA Portal, todos os campos Big-Endian):
 
-Layout assumido da DB (tudo Big-Endian, como o S7 trabalha nativamente):
+  Offset  Tipo   Campo
+  ------  -----  -------------------------------------------------------
+  0       INT    A1  (valor * 100)
+  2       INT    A2  (valor * 100)
+  4       INT    A3  (valor * 100)
+  6       INT    A4  (valor * 100)
+  8       INT    A5  (valor * 100)
+  10      INT    A6  (valor * 100)
+  12      INT    Robot_State      0=Manual T1, 1=Manual T2, 2=Auto, 3=Externo
+  14      INT    Pallet_Count
+  16      INT    Active_Alarm_Code   (slot 1 — primeiro alarme ativo)
+  18      INT    Cycle_Time_S
+  20.0    BOOL   Program_Running
+  20.1    BOOL   Drives_On
+  20.2    BOOL   In_Home_Position
+  20.3    BOOL   Alarm_Active
+  20.4    BOOL   Warning_Active
+  22      INT    Fault_Slot_2        (segundo alarme ativo, 0 = sem falha)
+  24      INT    Fault_Slot_3
+  26      INT    Fault_Slot_4
+  28      INT    Fault_Slot_5
 
-  Offset  Tipo     Campo
-  ------  -------  ------------------------------------------------
-  0.0     REAL     joint_1 (A1)            [graus]
-  4.0     REAL     joint_2 (A2)            [graus]
-  8.0     REAL     joint_3 (A3)            [graus]
-  12.0    REAL     joint_4 (A4)            [graus]
-  16.0    REAL     joint_5 (A5)            [graus]
-  20.0    REAL     joint_6 (A6)            [graus]
-  24.0    INT      program_state           0=Manual T1, 1=Manual T2,
-                                            2=Auto, 3=Externo
-  26.0    BOOL     program_running         X26.0
-  26.1    BOOL     drives_on               X26.1
-  26.2    BOOL     in_home_position        X26.2
-  26.3    BOOL     in_safety_stop          X26.3
-  28.0    DINT     pallet_count            contagem de paletes
-  32.0    DINT     cycle_count             contagem de ciclos
-  36.0    INT      active_alarm_code       0 = sem alarme
-  38.0    BOOL     alarm_active            X38.0
-  38.1    BOOL     warning_active          X38.1
-  40.0    REAL     cycle_time_s            tempo do ultimo ciclo [s]
+  *** Adicione os slots de falha conforme fechar a DB no TIA Portal. ***
+  *** Atualize NUM_FAULT_SLOTS e DB_SIZE abaixo. ***
 
-Ajuste os offsets conforme o "User Defined Type" / struct real assim
-que voce tiver a DB definitiva. O resto do backend (websocket, API)
-nao precisa mudar - so essa camada de parsing.
+Tamanho atual: 30 bytes (offsets 0–28, 5 slots de falha)
 """
 
 import asyncio
 import logging
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Optional
 
 import snap7
-from snap7.util import get_real, get_int, get_dint, get_bool
+from snap7.util import get_int, get_bool
 
 import config
+from alarm_codes import get_active_alarms
 
 logger = logging.getLogger("plc_client")
 
-# ----------------------------------------------------------------------
-# Conexao e numero da DB — vem do .env (veja config.py / .env.example).
-# Os valores abaixo so sao usados como fallback se a variavel nao
-# estiver definida no .env.
-# ----------------------------------------------------------------------
-PLC_IP = config.PLC_IP
-PLC_RACK = config.PLC_RACK
-PLC_SLOT = config.PLC_SLOT
-DB_NUMBER = config.DB_NUMBER       # AJUSTAR no .env quando a DB final existir
-DB_SIZE = config.DB_SIZE           # bytes a ler — DB601 ocupa 21 bytes (offset 20 + 1 byte bools)
+PLC_IP            = config.PLC_IP
+PLC_RACK          = config.PLC_RACK
+PLC_SLOT          = config.PLC_SLOT
+DB_NUMBER         = config.DB_NUMBER       # 601 para a DB601_DashBoard
+DB_SIZE           = config.DB_SIZE         # 30 bytes com 5 slots de falha
+POLL_INTERVAL_S   = config.POLL_INTERVAL_S
 
-POLL_INTERVAL_S = config.POLL_INTERVAL_S   # 10 Hz por padrao
+# Número de slots de falha INT na DB (após os BOOLs no offset 20).
+# Cada slot ocupa 2 bytes; o primeiro está no offset 16 (Active_Alarm_Code),
+# os demais começam em 22, 24, 26, ...
+# Ajuste conforme fechar a DB no TIA Portal.
+NUM_FAULT_SLOTS = 5
 
 
 @dataclass
 class CellState:
-    joints: list  # [j1..j6] em graus
-    program_state: int
+    joints: list                   # [A1..A6] em graus (float)
+    program_state: int             # 0=Manual T1, 1=Manual T2, 2=Auto, 3=Externo
     program_running: bool
     drives_on: bool
     in_home_position: bool
-    in_safety_stop: bool
+    in_safety_stop: bool           # não existe na DB601; sempre False
     pallet_count: int
-    cycle_count: int
-    active_alarm_code: int
+    cycle_count: int               # não existe na DB601; sempre 0
+    active_alarm_code: int         # código do alarme principal (slot 1)
     alarm_active: bool
     warning_active: bool
     cycle_time_s: float
     connected: bool
+    # Lista de alarmes ativos (todos os slots != 0), com descrição textual
+    active_alarms: list = field(default_factory=list)
 
     @staticmethod
     def disconnected() -> "CellState":
@@ -94,62 +95,64 @@ class CellState:
             warning_active=False,
             cycle_time_s=0.0,
             connected=False,
+            active_alarms=[],
         )
 
 
 def parse_db(raw: bytes) -> CellState:
     """Converte os bytes brutos da DB601_DashBoard no CellState.
 
-    Layout real (DB601_DashBoard — TIA Portal):
-      Offset  Tipo   Campo
-      0       INT    A1  (valor * 100)
-      2       INT    A2  (valor * 100)
-      4       INT    A3  (valor * 100)
-      6       INT    A4  (valor * 100)
-      8       INT    A5  (valor * 100)
-      10      INT    A6  (valor * 100)
-      12      INT    Robot_State   0=Manual T1, 1=Manual T2, 2=Auto, 3=Externo
-      14      INT    Pallet_Count
-      16      INT    Active_Alarm_Code
-      18      INT    Cycle_Time_S
-      20.0    BOOL   Program_Running
-      20.1    BOOL   Drives_On
-      20.2    BOOL   In_Home_Position
-      20.3    BOOL   Alarm_Active
-      20.4    BOOL   Warning_Active
+    Se você adicionar mais slots de falha na DB, ajuste NUM_FAULT_SLOTS
+    e DB_SIZE (em config.py / .env) — o resto do parsing é automático.
     """
+    # Juntas: INT * 100 → graus
     joints = [get_int(raw, off) / 100.0 for off in (0, 2, 4, 6, 8, 10)]
+
+    # Slot 1 de falha está no offset 16 (Active_Alarm_Code)
+    # Slots 2..N estão em 22, 24, 26, 28, ...
+    fault_codes = [get_int(raw, 16)]
+    for i in range(1, NUM_FAULT_SLOTS):
+        offset = 22 + (i - 1) * 2
+        if offset + 2 <= len(raw):
+            fault_codes.append(get_int(raw, offset))
+
+    active_alarms = get_active_alarms(fault_codes)
+
     return CellState(
         joints=joints,
         program_state=get_int(raw, 12),
         program_running=get_bool(raw, 20, 0),
         drives_on=get_bool(raw, 20, 1),
         in_home_position=get_bool(raw, 20, 2),
-        in_safety_stop=False,               # não existe na DB601, sempre False
+        in_safety_stop=False,
         pallet_count=get_int(raw, 14),
-        cycle_count=0,                      # não existe na DB601
-        active_alarm_code=get_int(raw, 16),
+        cycle_count=0,
+        active_alarm_code=fault_codes[0],
         alarm_active=get_bool(raw, 20, 3),
         warning_active=get_bool(raw, 20, 4),
         cycle_time_s=float(get_int(raw, 18)),
         connected=True,
+        active_alarms=active_alarms,
     )
 
 
 class PLCClient:
-    """Wrapper assincrono em torno do client sincrono do python-snap7."""
+    """Wrapper assíncrono em torno do client síncrono do python-snap7.
 
-    RECONNECT_INTERVAL_S = 3.0   # aguarda 3s entre tentativas de reconexão
+    Reconecta automaticamente com backoff de RECONNECT_INTERVAL_S segundos
+    entre tentativas, recriando o objeto Client() a cada tentativa para
+    evitar o erro 'Cannot change this param now'.
+    """
+
+    RECONNECT_INTERVAL_S = 3.0
 
     def __init__(self):
-        self._client = None
+        self._client: Optional[snap7.client.Client] = None
         self._connected = False
         self._lock = asyncio.Lock()
         self._last_connect_attempt = 0.0
 
     def _new_client(self):
-        """Cria um client snap7 limpo. Necessario recriar a cada tentativa
-        para evitar o erro 'Cannot change this param now'."""
         try:
             if self._client:
                 self._client.disconnect()
@@ -170,7 +173,7 @@ class PLCClient:
             pass
         self._connected = False
 
-    def _read_db_sync(self) -> Optional[bytes]:
+    def _read_db_sync(self) -> bytes:
         return self._client.db_read(DB_NUMBER, 0, DB_SIZE)
 
     async def connect(self):
@@ -205,7 +208,7 @@ class PLCClient:
 
 
 async def poll_loop(client: PLCClient, on_update):
-    """Loop continuo de leitura. on_update(CellState) é chamado a cada ciclo."""
+    """Loop contínuo de leitura a POLL_INTERVAL_S segundos."""
     while True:
         state = await client.read_state()
         await on_update(state)
