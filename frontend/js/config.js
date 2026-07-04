@@ -11,7 +11,7 @@ export const PROGRAM_STATE_LABELS = {
 export const JOINT_NAMES = ["A1", "A2", "A3", "A4", "A5", "A6"];
 
 export const MODEL_URL = "/static/models/KR180_Std.glb?v=2";
-export const CELL_URL = "/static/models/cell_layout.glb?v=16";
+export const CELL_URL = "/static/models/cell_layout.glb?v=18";
 
 export const ROBOT_BASE_TRANSFORM = {
   x: 0,
