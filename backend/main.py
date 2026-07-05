@@ -75,7 +75,7 @@ async def shutdown():
     if plc_client:
         await plc_client.disconnect()
 
-
+""""
 @app.websocket("/ws")
 async def ws_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -88,6 +88,24 @@ async def ws_endpoint(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         pass
+    finally:
+        clients.discard(websocket)
+       """
+
+@app.websocket("/ws")
+async def ws_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    clients.add(websocket)
+
+    try:
+        while True:
+            await websocket.send_json(state_to_dict(latest_state))
+            await asyncio.sleep(config.POLL_INTERVAL_S)
+
+    except WebSocketDisconnect:
+        pass
+    except Exception as exc:
+        logger.warning("WebSocket desconectado: %s", exc)
     finally:
         clients.discard(websocket)
 

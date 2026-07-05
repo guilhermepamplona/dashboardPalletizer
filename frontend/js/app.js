@@ -5,26 +5,52 @@ import { DashboardUI } from "./ui/DashboardUI.js";
 import { SimulationService } from "./communication/SimulationService.js";
 import { WebSocketClient } from "./communication/WebSocketClient.js";
 
-const canvas = document.getElementById("viewport");
-const wrap = document.getElementById("viewport-wrap");
-const initialJoints = [0, 0, 0, 0, 0, 0];
+window.addEventListener("error", (event) => {
+  alert("Erro JS: " + event.message);
+});
 
-const sceneController = new SceneController(canvas, wrap);
-const robotController = new RobotController(sceneController);
-const ui = new DashboardUI(robotController);
+window.addEventListener("unhandledrejection", (event) => {
+  alert("Erro Promise: " + event.reason);
+});
 
-robotController.onStatusChange = (text) => ui.setModelStatus(text);
-ui.init();
+async function main() {
+  try {
+    console.log("Iniciando aplicação...");
 
-const cellLoader = new CellLoader(sceneController);
-const simulationService = new SimulationService(ui, robotController);
-const webSocketClient = new WebSocketClient(ui, simulationService);
+    const canvas = document.getElementById("viewport");
+    const wrap = document.getElementById("viewport-wrap");
+    const initialJoints = [0, 0, 0, 0, 0, 0];
 
-window.addEventListener("resize", () => sceneController.resize());
+    const sceneController = new SceneController(canvas, wrap);
+    const robotController = new RobotController(sceneController);
+    const ui = new DashboardUI(robotController);
 
-await robotController.load(initialJoints);
-await cellLoader.load();
+    robotController.onStatusChange = (text) => ui.setModelStatus(text);
+    ui.init();
 
-sceneController.start();
-simulationService.start();
-webSocketClient.connect();
+    const cellLoader = new CellLoader(sceneController);
+    const simulationService = new SimulationService(ui, robotController);
+    const webSocketClient = new WebSocketClient(ui, simulationService);
+
+    window.addEventListener("resize", () => sceneController.resize());
+
+    await robotController.load(initialJoints);
+    await cellLoader.load();
+
+    sceneController.start();
+    simulationService.start();
+    webSocketClient.connect();
+
+  } catch (err) {
+    console.error("ERRO NA INICIALIZAÇÃO:", err);
+
+    const status = document.getElementById("modelStatus");
+    if (status) {
+      status.textContent = "Erro JS: " + err.message;
+    }
+
+    alert("Erro JS: " + err.message);
+  }
+}
+
+main();
