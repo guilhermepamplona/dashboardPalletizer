@@ -36,6 +36,7 @@ export const BOX_TYPE = {
   - position/rotation: ajuste visual na cena
 */
 export const BOX_INSTANCES = [
+  //Caixas SPGV2 - Conveyor 1
   {
     id: "Caixa_Conv1_01",
     type: BOX_TYPE.SPGV2,
@@ -51,65 +52,66 @@ export const BOX_INSTANCES = [
     rotation: { x: 0, y: 0, z: 0 },
   },
 
-  // Já deixei a estrutura pronta para as próximas esteiras.
-  // Ajuste as posições quando você posicionar visualmente cada caixa.
+  //Caixas SPGV1 - Conveyor 2
   {
     id: "Caixa_Conv2_01",
-    type: BOX_TYPE.SPGV2,
+    type: BOX_TYPE.SPGV1,
     sensor: "sensor1_conv2",
     position: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
   },
   {
     id: "Caixa_Conv2_02",
-    type: BOX_TYPE.SPGV2,
+    type: BOX_TYPE.SPGV1,
     sensor: "sensor2_conv2",
     position: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
   },
 
+  //Caixas SPPV - Conveyor 3
   {
     id: "Caixa_Conv3_01",
-    type: BOX_TYPE.SPGV2,
+    type: BOX_TYPE.SPPV,
     sensor: "sensor1_conv3",
-    position: { x: 0, y: 0, z: 0 },
+    position: { x: 1.26, y: 2.8, z: -0.3 },
     rotation: { x: 0, y: 0, z: 0 },
   },
   {
     id: "Caixa_Conv3_02",
-    type: BOX_TYPE.SPGV2,
+    type: BOX_TYPE.SPPV,
     sensor: "sensor2_conv3",
-    position: { x: 0, y: 0, z: 0 },
+    position: { x: 1.46, y: 2.8, z: -0.3 },
     rotation: { x: 0, y: 0, z: 0 },
   },
   {
     id: "Caixa_Conv3_03",
-    type: BOX_TYPE.SPGV2,
+    type: BOX_TYPE.SPPV,
     sensor: "sensor3_conv3",
-    position: { x: 0, y: 0, z: 0 },
+    position: { x: 0, y: 2.8, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
   },
 
+  //Caixas SPGV3 - Conveyor 4
   {
     id: "Caixa_Conv4_01",
-    type: BOX_TYPE.SPGV2,
+    type: BOX_TYPE.SPGV3,
     sensor: "sensor1_conv4",
-    position: { x: 0, y: 0, z: 0 },
+    position: { x: 1.35, y: 2.8, z: -1.2 },
     rotation: { x: 0, y: 0, z: 0 },
   },
   {
     id: "Caixa_Conv4_02",
-    type: BOX_TYPE.SPGV2,
+    type: BOX_TYPE.SPGV3,
     sensor: "sensor2_conv4",
-    position: { x: 0, y: 0, z: 0 },
+    position: { x: 0, y: 2.8, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
   },
   {
     id: "Caixa_Conv4_03",
-    type: BOX_TYPE.SPGV2,
+    type: BOX_TYPE.SPGV3,
     sensor: "sensor3_conv4",
-    position: { x: 0, y: 0, z: 0 },
-    rotation: { x: 0, y: 0, z: 0 },
+    position: { x: 0, y: 2.8, z: 0 },
+    rotation: { x: 0, y:0, z: 0 },
   },
 ];
 
