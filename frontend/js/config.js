@@ -11,7 +11,117 @@ export const PROGRAM_STATE_LABELS = {
 export const JOINT_NAMES = ["A1", "A2", "A3", "A4", "A5", "A6"];
 
 export const MODEL_URL = "/static/models/KR180_Std.glb?v=2";
-export const CELL_URL = "/static/models/cell_layout.glb?v=18";
+export const CELL_URL = "/static/models/cell_layout.glb?v=19";
+
+export const BOX_MODELS = {
+  spgv1: "/static/models/caixa_SPGV1.glb?v=1",
+  spgv2: "/static/models/caixa_SPGV2.glb?v=1",
+  spgv3: "/static/models/caixa_SPGV3.glb?v=1",
+  sppv: "/static/models/caixa_SPPV.glb?v=1",
+};
+
+export const BOX_TYPE = {
+  SPGV1: "spgv1",
+  SPGV2: "spgv2",
+  SPGV3: "spgv3",
+  SPPV: "sppv",
+};
+
+/*
+  Caixas dinâmicas da célula.
+
+  - id: nome único da caixa na cena
+  - type: modelo usado, vindo de BOX_TYPE
+  - sensor: nome do booleano recebido pelo WebSocket/CLP
+  - position/rotation: ajuste visual na cena
+*/
+export const BOX_INSTANCES = [
+  {
+    id: "Caixa_Conv1_01",
+    type: BOX_TYPE.SPGV2,
+    sensor: "sensor1_conv1",
+    position: { x: 1.32, y: 2.8, z: 1.25 },
+    rotation: { x: 0, y: 0, z: 0 },
+  },
+  {
+    id: "Caixa_Conv1_02",
+    type: BOX_TYPE.SPGV2,
+    sensor: "sensor2_conv1",
+    position: { x: 1.65, y: 2.8, z: 1.25 },
+    rotation: { x: 0, y: 0, z: 0 },
+  },
+
+  // Já deixei a estrutura pronta para as próximas esteiras.
+  // Ajuste as posições quando você posicionar visualmente cada caixa.
+  {
+    id: "Caixa_Conv2_01",
+    type: BOX_TYPE.SPGV2,
+    sensor: "sensor1_conv2",
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+  },
+  {
+    id: "Caixa_Conv2_02",
+    type: BOX_TYPE.SPGV2,
+    sensor: "sensor2_conv2",
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+  },
+
+  {
+    id: "Caixa_Conv3_01",
+    type: BOX_TYPE.SPGV2,
+    sensor: "sensor1_conv3",
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+  },
+  {
+    id: "Caixa_Conv3_02",
+    type: BOX_TYPE.SPGV2,
+    sensor: "sensor2_conv3",
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+  },
+  {
+    id: "Caixa_Conv3_03",
+    type: BOX_TYPE.SPGV2,
+    sensor: "sensor3_conv3",
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+  },
+
+  {
+    id: "Caixa_Conv4_01",
+    type: BOX_TYPE.SPGV2,
+    sensor: "sensor1_conv4",
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+  },
+  {
+    id: "Caixa_Conv4_02",
+    type: BOX_TYPE.SPGV2,
+    sensor: "sensor2_conv4",
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+  },
+  {
+    id: "Caixa_Conv4_03",
+    type: BOX_TYPE.SPGV2,
+    sensor: "sensor3_conv4",
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+  },
+];
+
+/*
+  Futuro: quando você separar as esteiras em GLBs individuais,
+  crie URLs e listas aqui, e um loader específico poderá clonar por software.
+*/
+// export const CONVEYOR_MODELS = {
+//   pallet: "/static/models/esteira_pallet.glb?v=1",
+//   product: "/static/models/esteira_produto.glb?v=1",
+// };
+
 
 export const ROBOT_BASE_TRANSFORM = {
   x: 0,

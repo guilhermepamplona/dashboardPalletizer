@@ -29,6 +29,21 @@ export class SimulationService {
         112 + 25 * Math.sin(t * 0.5),
         60 * Math.sin(t * 0.75),
       ],
+
+      // Sensores simulados para testar visibilidade das caixas sem CLP.
+      sensor1_conv1: Math.sin(t * 0.7) > -0.2,
+      sensor2_conv1: Math.sin(t * 0.7) > 0.55,
+
+      sensor1_conv2: false,
+      sensor2_conv2: false,
+
+      sensor1_conv3: false,
+      sensor2_conv3: false,
+      sensor3_conv3: false,
+
+      sensor1_conv4: false,
+      sensor2_conv4: false,
+      sensor3_conv4: false,
     };
   }
 

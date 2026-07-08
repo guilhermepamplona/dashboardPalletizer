@@ -1,6 +1,6 @@
 import { SceneController } from "./core/SceneController.js";
 import { RobotController } from "./robot/RobotController.js";
-import { CellLoader } from "./cell/CellLoader.js";
+import { CellManager } from "./cell/CellManager.js";
 import { DashboardUI } from "./ui/DashboardUI.js";
 import { SimulationService } from "./communication/SimulationService.js";
 import { WebSocketClient } from "./communication/WebSocketClient.js";
@@ -23,19 +23,18 @@ async function main() {
 
     const sceneController = new SceneController(canvas, wrap);
     const robotController = new RobotController(sceneController);
-    const ui = new DashboardUI(robotController);
+    const cellManager = new CellManager(sceneController);
+    const ui = new DashboardUI(robotController, cellManager);
 
     robotController.onStatusChange = (text) => ui.setModelStatus(text);
     ui.init();
-
-    const cellLoader = new CellLoader(sceneController);
     const simulationService = new SimulationService(ui, robotController);
     const webSocketClient = new WebSocketClient(ui, simulationService);
 
     window.addEventListener("resize", () => sceneController.resize());
 
     await robotController.load(initialJoints);
-    await cellLoader.load();
+    await cellManager.load();
 
     sceneController.start();
     simulationService.start();

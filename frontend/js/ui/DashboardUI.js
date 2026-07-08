@@ -1,8 +1,9 @@
 import { JOINT_NAMES, PROGRAM_STATE_LABELS } from "../config.js";
 
 export class DashboardUI {
-  constructor(robotController) {
+  constructor(robotController, cellManager = null) {
     this.robotController = robotController;
+    this.cellManager = cellManager;
     this.el = {
       connDot: document.getElementById("connDot"),
       connText: document.getElementById("connText"),
@@ -98,5 +99,9 @@ export class DashboardUI {
 
     this.el.alarmCode.textContent =
       state.active_alarm_code ?? 0 ? "#" + (state.active_alarm_code ?? 0) : "—";
+
+    if (this.cellManager) {
+      this.cellManager.updateFromState(state);
+    }
   }
 }

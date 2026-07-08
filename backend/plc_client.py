@@ -27,6 +27,16 @@ Layout da DB601_DashBoard (TIA Portal, todos os campos Big-Endian):
   24      INT    Fault_Slot_3
   26      INT    Fault_Slot_4
   28      INT    Fault_Slot_5
+  30.0    BOOL   Sensor_1_Conv_1 
+  30.1    BOOL   Sensor_2_Conv_1
+  30.2    BOOL   Sensor_1_Conv_2
+  30.3    BOOL   Sensor_2_Conv_2
+  30.4    BOOL   Sensor_1_Conv_3
+  30.5    BOOL   Sensor_2_Conv_3
+  30.6    BOOL   Sensor_3_Conv_3
+  30.7    BOOL   Sensor_1_Conv_4
+  31.0    BOOL   Sensor_2_Conv_4
+  31.1    BOOL   Sensor_3_Conv_4
 
   *** Adicione os slots de falha conforme fechar a DB no TIA Portal. ***
   *** Atualize NUM_FAULT_SLOTS e DB_SIZE abaixo. ***
@@ -76,6 +86,16 @@ class CellState:
     warning_active: bool
     cycle_time_s: float
     connected: bool
+    sensor1_conv1: bool
+    sensor2_conv1: bool
+    sensor1_conv2: bool
+    sensor2_conv2: bool
+    sensor1_conv3: bool
+    sensor2_conv3: bool
+    sensor3_conv3: bool
+    sensor1_conv4: bool
+    sensor2_conv4: bool
+    sensor3_conv4: bool
     # Lista de alarmes ativos (todos os slots != 0), com descrição textual
     active_alarms: list = field(default_factory=list)
 
@@ -96,6 +116,16 @@ class CellState:
             cycle_time_s=0.0,
             connected=False,
             active_alarms=[],
+            sensor1_conv1=False,
+            sensor2_conv1=False,
+            sensor1_conv2=False,
+            sensor2_conv2=False,
+            sensor1_conv3=False,
+            sensor2_conv3=False,
+            sensor3_conv3=False,
+            sensor1_conv4=False,
+            sensor2_conv4=False,
+            sensor3_conv4=False
         )
 
 
@@ -133,6 +163,16 @@ def parse_db(raw: bytes) -> CellState:
         cycle_time_s=float(get_int(raw, 18)),
         connected=True,
         active_alarms=active_alarms,
+        sensor1_conv1=get_bool(raw, 30,0),
+        sensor2_conv1=get_bool(raw, 30,1),
+        sensor1_conv2=get_bool(raw, 30,2),
+        sensor2_conv2=get_bool(raw, 30,3),
+        sensor1_conv3=get_bool(raw, 30,4),
+        sensor2_conv3=get_bool(raw, 30,5),
+        sensor3_conv3=get_bool(raw, 30,6),
+        sensor1_conv4=get_bool(raw, 30,7),
+        sensor2_conv4=get_bool(raw, 31,0),
+        sensor3_conv4=get_bool(raw, 31,1),
     )
 
 
