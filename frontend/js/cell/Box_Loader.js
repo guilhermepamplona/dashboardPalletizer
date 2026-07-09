@@ -65,17 +65,26 @@ export class BoxLoader {
 
   updateFromState(state) {
     for (const cfg of this.instances) {
+      // Não altera visibilidade de caixas que estão no TCP
+      if (this._grippedIds.has(cfg.id)) continue;
       this.setVisible(cfg.id, Boolean(state[cfg.sensor]));
     }
   }
 
+  /** IDs das caixas atualmente presas no TCP — não alterar visibilidade delas. */
+  _grippedIds = new Set();
+
   attachToRobot(name, tcp) {
     const box = this.getBox(name);
-
     if (!box || !tcp) return;
 
     box.visible = true;
     tcp.attach(box);
+    this._grippedIds.add(name);
+  }
+
+  detachFromTcp(name) {
+    this._grippedIds.delete(name);
   }
 
   placeOnPallet(name, position, rotation = null) {

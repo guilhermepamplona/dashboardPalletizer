@@ -1,25 +1,20 @@
-import { CellLoader } from "./CellLoader.js";
-import { BoxLoader } from "./Box_Loader.js";
-import { BOX_INSTANCES } from "../config.js";
+import { CellLoader }    from "./CellLoader.js";
+import { BoxLoader }     from "./Box_Loader.js";
+import { PalletLoader }  from "./PalletLoader.js";
+import { BOX_INSTANCES, PALLET_INSTANCES } from "../config.js";
 
-/*
-  CellManager centraliza os elementos dinâmicos da célula.
-
-  Hoje ele gerencia:
-  - layout fixo da célula: cell_layout.glb
-  - caixas dinâmicas: modelos clonados a partir de BOX_MODELS/BOX_INSTANCES
-
-  Futuro:
-  - pallets dinâmicos
-  - esteiras clonadas por software
-  - sensores/luzes da célula
-*/
+/**
+ * CellManager centraliza os elementos dinâmicos da célula:
+ *  - Layout fixo: cell_layout.glb
+ *  - Caixas dinâmicas: clonadas por BOX_INSTANCES (visibilidade por sensor)
+ *  - Pallets dinâmicos: clonados por PALLET_INSTANCES (visibilidade por sensor)
+ */
 export class CellManager {
   constructor(sceneController) {
     this.sceneController = sceneController;
-
-    this.cellLoader = new CellLoader(sceneController);
-    this.boxLoader = new BoxLoader(sceneController);
+    this.cellLoader   = new CellLoader(sceneController);
+    this.boxLoader    = new BoxLoader(sceneController);
+    this.palletLoader = new PalletLoader(sceneController);
   }
 
   async load() {
@@ -27,10 +22,14 @@ export class CellManager {
 
     await this.boxLoader.loadTemplates();
     this.boxLoader.createBoxesFromConfig(BOX_INSTANCES);
+
+    await this.palletLoader.loadTemplate();
+    this.palletLoader.createPalletsFromConfig(PALLET_INSTANCES);
   }
 
   updateFromState(state) {
     this.boxLoader.updateFromState(state);
+    this.palletLoader.updateFromState(state);
   }
 
   attachBoxToRobot(boxId, tcp) {
