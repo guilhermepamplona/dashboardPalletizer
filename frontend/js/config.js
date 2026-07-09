@@ -87,7 +87,7 @@ export const BOX_INSTANCES = [
     id: "Caixa_Conv3_03",
     type: BOX_TYPE.SPPV,
     sensor: "sensor3_conv3",
-    position: { x: 0, y: 2.8, z: 0 },
+    position: { x: 1.66, y: 2.8, z: -0.3 },
     rotation: { x: 0, y: 0, z: 0 },
   },
 
@@ -96,21 +96,21 @@ export const BOX_INSTANCES = [
     id: "Caixa_Conv4_01",
     type: BOX_TYPE.SPGV3,
     sensor: "sensor1_conv4",
-    position: { x: 1.35, y: 2.8, z: -1.2 },
+    position: { x: 1.28, y: 2.8, z: -1.2 },
     rotation: { x: 0, y: 0, z: 0 },
   },
   {
     id: "Caixa_Conv4_02",
     type: BOX_TYPE.SPGV3,
     sensor: "sensor2_conv4",
-    position: { x: 0, y: 2.8, z: 0 },
+    position: { x: 1.51, y: 2.8, z: -1.2 },
     rotation: { x: 0, y: 0, z: 0 },
   },
   {
     id: "Caixa_Conv4_03",
     type: BOX_TYPE.SPGV3,
     sensor: "sensor3_conv4",
-    position: { x: 0, y: 2.8, z: 0 },
+    position: { x: 1.74, y: 2.8, z: -1.2 },
     rotation: { x: 0, y:0, z: 0 },
   },
 ];
