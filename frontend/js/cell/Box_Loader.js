@@ -65,14 +65,18 @@ export class BoxLoader {
 
   updateFromState(state) {
     for (const cfg of this.instances) {
-      // Não altera visibilidade de caixas que estão no TCP
+      // Não altera visibilidade de caixas no TCP ou já depositadas no palete
       if (this._grippedIds.has(cfg.id)) continue;
+      if (this._placedIds.has(cfg.id)) continue;
       this.setVisible(cfg.id, Boolean(state[cfg.sensor]));
     }
   }
 
-  /** IDs das caixas atualmente presas no TCP — não alterar visibilidade delas. */
+  /** IDs das caixas presas no TCP — não alterar visibilidade delas. */
   _grippedIds = new Set();
+
+  /** IDs das caixas já depositadas no palete — permanecem visíveis. */
+  _placedIds = new Set();
 
   attachToRobot(name, tcp) {
     const box = this.getBox(name);
@@ -89,16 +93,13 @@ export class BoxLoader {
 
   placeOnPallet(name, position, rotation = null) {
     const box = this.getBox(name);
-
     if (!box) return;
 
     this.sceneController.scene.attach(box);
     box.position.set(position.x, position.y, position.z);
-
-    if (rotation) {
-      box.rotation.set(rotation.x, rotation.y, rotation.z);
-    }
+    if (rotation) box.rotation.set(rotation.x, rotation.y, rotation.z);
 
     box.visible = true;
+    this._placedIds.add(name); // mantém visível mesmo com sensor = false
   }
 }

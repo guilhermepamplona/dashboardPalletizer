@@ -62,15 +62,15 @@ export const BOX_INSTANCES = [
   // Conveyor 3 — SPPV
   {
     id: "Caixa_Conv3_01", type: BOX_TYPE.SPPV, sensor: "sensor1_conv3",
-    position: { x: 1.26, y: 2.8, z: -0.30 }, rotation: { x: 0, y: 0, z: 0 },
+    position: { x: 1.26, y: 2.76, z: -0.5 }, rotation: { x: 0, y: 0, z: 0 },
   },
   {
     id: "Caixa_Conv3_02", type: BOX_TYPE.SPPV, sensor: "sensor2_conv3",
-    position: { x: 1.46, y: 2.8, z: -0.30 }, rotation: { x: 0, y: 0, z: 0 },
+    position: { x: 1.46, y: 2.76, z: -0.5 }, rotation: { x: 0, y: 0, z: 0 },
   },
   {
     id: "Caixa_Conv3_03", type: BOX_TYPE.SPPV, sensor: "sensor3_conv3",
-    position: { x: 1.66, y: 2.8, z: -0.30 }, rotation: { x: 0, y: 0, z: 0 },
+    position: { x: 1.66, y: 2.76, z: -0.5 }, rotation: { x: 0, y: 0, z: 0 },
   },
 
   // Conveyor 4 — SPGV3
